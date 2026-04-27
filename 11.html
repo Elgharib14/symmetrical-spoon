@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خطة اللياقة الذكية - AI</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #6e79d6; display: flex; justify-content: center; padding: 40px 10px; margin: 0; }
+        .card { background: white; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); width: 100%; max-width: 550px; padding: 30px; }
+        h1 { color: #5c6bc0; font-size: 28px; margin-bottom: 5px; text-align: center; }
+        .subtitle { color: #666; font-size: 14px; text-align: center; margin-bottom: 30px; }
+        
+        .input-group { margin-bottom: 20px; text-align: right; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; background-color: #fafafa; font-size: 16px; box-sizing: border-box; outline: none; }
+        
+        .btn-blue { background-color: #6e85e1; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .btn-orange { background-color: #ff9800; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        
+        .result-panel { background-color: #f0f4ff; border-radius: 15px; padding: 20px; margin: 15px 0; text-align: right; display: none; border: 1px solid #d1d9ff; }
+        .ai-panel { border: 2px solid #ff9800; border-radius: 15px; padding: 20px; margin: 15px 0; background-color: #fff9f0; text-align: right; display: none; }
+
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #ff9800; border-radius: 50%; width: 18px; height: 18px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-left: 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .loading-area { text-align: center; color: #ff9800; font-weight: bold; margin-top: 10px; display: none; }
+        .note { font-size: 11px; color: #777; margin-top: 15px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>🏋️‍♂️ خطة اللياقة الذكية - AI</h1>
+    <p class="subtitle">مشروع تطبيقات الذكاء الاصطناعي - مستشار رياضي ذكي</p>
+
+    <div class="input-group">
+        <label>اختر الهدف الرئيسي:</label>
+        <select id="goal">
+            <option value="lose">خسارة الوزن وزيادة الحرق</option>
+            <option value="build">بناء الكتلة العضلية والقوة</option>
+            <option value="fitness">تحسين اللياقة البدنية والصحة العامة</option>
+        </select>
+    </div>
+
+    <div class="input-group" style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+            <label>الوزن الحالي (كجم):</label>
+            <input type="number" id="weight" value="80">
+        </div>
+        <div style="flex: 1;">
+            <label>الطول (سم):</label>
+            <input type="number" id="height" value="175">
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label>عدد أيام التمرين أسبوعياً:</label>
+        <input type="number" id="days" value="4" min="1" max="7">
+    </div>
+
+    <button class="btn-blue" onclick="showAnalysis()">1. تحليل مؤشرات الجسم</button>
+    
+    <div id="analysisPanel" class="result-panel">
+        <h4 style="margin:0; color: #5c6bc0;">📊 تقريرك البدني الأولي</h4>
+        <div id="analysisContent" style="margin-top:10px; font-size: 15px;"></div>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0;">
+
+    <div class="input-group">
+        <label>اسأل المستشار الذكي 🤖:</label>
+        <textarea id="question" rows="2" placeholder="اكتب سؤالك هنا.. مثال: كيف أحرق دهون البطن؟"></textarea>
+    </div>
+    
+    <button class="btn-orange" onclick="askAI()">2. اسأل المستشار الذكي 🤖</button>
+    
+    <div id="aiPanel" class="ai-panel">
+        <div id="loadingArea" class="loading-area">
+            <div class="loader"></div> جاري تحليل بياناتك...
+        </div>
+        <div id="aiResponseArea" style="display: none;">
+            <h4 style="margin:0; color: #e68a00;">🤖 رد المستشار الذكي:</h4>
+            <div id="responseText" style="margin-top:10px; font-size: 14px; line-height: 1.6;"></div>
+        </div>
+    </div>
+
+   
+</div>
+
+<script>
+    function showAnalysis() {
+        const weight = parseFloat(document.getElementById('weight').value);
+        const height = parseFloat(document.getElementById('height').value) / 100;
+        const goal = document.getElementById('goal').value;
+        const days = document.getElementById('days').value;
+
+        if (isNaN(weight) || isNaN(height) || height <= 0 || weight <= 0) {
+            alert("الرجاء إدخال وزن وطول صحيحين.");
+            return;
+        }
+
+        const bmi = (weight / (height * height)).toFixed(1);
+        let category = "";
+        let color = "";
+
+        if (bmi < 18.5) { category = "نقص في الوزن"; color = "#f39c12"; }
+        else if (bmi < 25) { category = "وزن مثالي"; color = "#27ae60"; }
+        else if (bmi < 30) { category = "زيادة في الوزن"; color = "#e67e22"; }
+        else { category = "سمنة"; color = "#c0392b"; }
+
+        let dietAdvice = "";
+        if (goal === "lose") {
+            dietAdvice = (bmi >= 25) ? "تحتاج إلى عجز في السعرات الحرارية (تقليل الأكل بنسبة 15-20%)." : "وزنك جيد، ركز على جودة الأكل مع ممارسة الكارديو.";
+        } else if (goal === "build") {
+            dietAdvice = "تحتاج إلى فائض بسيط في السعرات الحرارية مع تركيز عالٍ على البروتين لبناء العضلات.";
+        } else {
+            dietAdvice = "وازن بين السعرات المتناولة والمحروقة للمحافظة على لياقتك الحالية.";
+        }
+
+        const content = document.getElementById('analysisContent');
+        content.innerHTML = `
+            <p>مؤشر كتلة جسمك (BMI) هو: <strong style="color: ${color}; font-size: 18px;">${bmi}</strong></p>
+            <p>تصنيف جسمك حالياً: <strong>${category}</strong></p>
+            <p><strong>النصيحة الغذائية:</strong> ${dietAdvice}</p>
+            <p>تخطيط التمرين: التدريب لمدة <strong style="color: #6e85e1;">${days} أيام</strong> أسبوعياً ممتاز جداً.</p>
+        `;
+
+        document.getElementById('analysisPanel').style.display = 'block';
+    }
+
+    function askAI() {
+        const question = document.getElementById('question').value.trim();
+        if (question === "") { alert("اكتب سؤالك أولاً في المربع"); return; }
+
+        document.getElementById('aiPanel').style.display = 'block';
+        document.getElementById('aiResponseArea').style.display = 'none';
+        document.getElementById('loadingArea').style.display = 'block';
+
+        setTimeout(() => {
+            let answer = "";
+            const lowerQ = question.toLowerCase();
+            
+            if (lowerQ.includes("بطن") || lowerQ.includes("كرش")) {
+                answer = "للتخلص من دهون البطن، السر يكمن في 'عجز السعرات' وتمارين المقاومة لكامل الجسم، مع التركيز على تقليل السكريات والخبز الأبيض.";
+            } else if (lowerQ.includes("صدر")) {
+                answer = "أفضل تمرين لعضلة الصدر هو 'Dumbbell Press' و 'Push-ups'. تأكد من أداء التمرين ببطء لزيادة التركيز العضلي.";
+            } else {
+                answer = `بناءً على سؤالك ("${question}")، ننصحك بالالتزام بجدول رياضي منتظم مع زيادة كمية البروتين في وجباتك لضمان استشفاء عضلاتك بشكل سليم.`;
+            }
+
+            document.getElementById('loadingArea').style.display = 'none';
+            document.getElementById('responseText').innerHTML = answer;
+            document.getElementById('aiResponseArea').style.display = 'block';
+        }, 1500);
+    }
+</script>
+
+</body>
+</html>
